@@ -19,7 +19,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-//    [self test_kvo];
+    [self test_kvo];
     
     [self test_kvo_manually];
 }
@@ -36,7 +36,7 @@
     NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld;
     [p1 addObserver:self forKeyPath:@"age" options:options context:nil];
     
-//    NSLog(@"print class: %@,%@",[p1 class],[p2 class]);
+    NSLog(@"print class: %@,%@",[p1 class],[p2 class]);
     
     [self methodForSelectorLogWithP1:p1 P2:p2];
     
@@ -68,7 +68,7 @@
 
 // kvo func to show working
 - (void)methodForSelectorLogWithP1:(NSObject *)p1 P2:(NSObject *)p2 {
-//    NSLog(@"添加KVO监听之前 - p1 = %p, p2 = %p", [p1 methodForSelector: @selector(setAge:)],[p2 methodForSelector: @selector(setAge:)]);
+    NSLog(@"添加KVO监听之前 - p1 = %p, p2 = %p", [p1 methodForSelector: @selector(setAge:)],[p2 methodForSelector: @selector(setAge:)]);
 }
 
 // runtime to print class methods
@@ -76,7 +76,7 @@
     unsigned int count ;
     Method *methods = class_copyMethodList(cls, &count);
     NSMutableString *methodNames = [NSMutableString string];
-//    [methodNames appendFormat:@"%@ method list: ", cls];
+    [methodNames appendFormat:@"%@ method list: ", cls];
     for (int i = 0 ; i < count; i++) {
         Method method = methods[i];
         NSString *methodName  = NSStringFromSelector(method_getName(method));
@@ -84,7 +84,7 @@
         [methodNames appendString:@"\n"];
         [methodNames appendString: methodName];
     }
-//    NSLog(@"%@",methodNames);
+    NSLog(@"%@",methodNames);
     free(methods);
 }
 
