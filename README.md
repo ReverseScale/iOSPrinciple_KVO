@@ -41,7 +41,9 @@ KVO的全称 Key-Value Observing，俗称“键值监听”，可以用于监听
 
 ### 探寻KVO底层实现原理
 通过上述代码我们发现，一旦age属性的值发生改变时，就会通知到监听者，并且我们知道赋值操作都是调用 set方法，我们可以来到Person类中重写age的set方法，观察是否是KVO在set方法内部做了一些操作来通知监听者。
+
 我们发现即使重写了set方法，p1对象和p2对象调用同样的set方法，但是我们发现p1除了调用set方法之外还会另外执行监听器的observeValueForKeyPath方法。
+
 说明KVO在运行时获取对p1对象做了一些改变。相当于在程序运行过程中，对p1对象做了一些变化，使得p1对象在调用setage方法的时候可能做了一些额外的操作，所以问题出在对象身上，两个对象在内存中肯定不一样，两个对象可能本质上并不一样。接下来来探索KVO内部是怎么实现的。
 
 ### KVO底层实现分析
@@ -50,14 +52,16 @@ KVO的全称 Key-Value Observing，俗称“键值监听”，可以用于监听
 ![](http://og1yl0w9z.bkt.clouddn.com/18-5-7/99485898.jpg)
 
 通过上图我们发现，p1对象执行过addObserver操作之后，p1对象的isa指针由之前的指向类对象Person变为指向NSKVONotifyin_Person类对象，而p2对象没有任何改变。也就是说一旦p1对象添加了KVO监听以后，其isa指针就会发生变化，因此set方法的执行效果就不一样了。
+
 那么我们先来观察p2对象在内容中是如何存储的，然后对比p2来观察p1。
+
 首先我们知道，p2在调用setage方法的时候，首先会通过p2对象中的isa指针找到Person类对象，然后在类对象中找到setage方法。然后找到方法对应的实现。如下图所示
 
 ![](http://og1yl0w9z.bkt.clouddn.com/18-5-7/79832806.jpg)
 
 但是刚才我们发现p1对象的isa指针在经过KVO监听之后已经指向了NSKVONotifyin_Person类对象，NSKVONotifyin_Person其实是Person的子类，那么也就是说其superclass指针是指向Person类对象的，NSKVONotifyin_Person是runtime在运行时生成的。那么p1对象在调用setage方法的时候，肯定会根据p1的isa找到NSKVONotifyin_Person，在NSKVONotifyin_Person中找setage的方法及实现。
-经过查阅资料我们可以了解到。
-NSKVONotifyin_Person中的setage方法中其实调用了 Fundation框架中C语言函数 _NSsetIntValueAndNotify，_NSsetIntValueAndNotify内部做的操作相当于，首先调用willChangeValueForKey 将要改变方法，之后调用父类的setage方法对成员变量赋值，最后调用didChangeValueForKey已经改变方法。didChangeValueForKey中会调用监听器的监听方法，最终来到监听者的observeValueForKeyPath方法中。
+
+经过查阅资料我们可以了解到，NSKVONotifyin_Person中的setage方法中其实调用了 Fundation框架中C语言函数 _NSsetIntValueAndNotify，_NSsetIntValueAndNotify内部做的操作相当于，首先调用willChangeValueForKey 将要改变方法，之后调用父类的setage方法对成员变量赋值，最后调用didChangeValueForKey已经改变方法。didChangeValueForKey中会调用监听器的监听方法，最终来到监听者的observeValueForKeyPath方法中。
 
 ### 那么如何验证KVO真的如上面所讲的方式实现？
 
@@ -147,7 +151,7 @@ NSLog(@"%@,%@",[p1 class],[p2 class]);
 ```objc
 - (Class) class {
 // 得到类对象，在找到类对象父类
-return class_getSuperclass(object_getClass(self));
+    return class_getSuperclass(object_getClass(self));
 }
 ```
 
